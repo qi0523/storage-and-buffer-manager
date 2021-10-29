@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <stdio.h>
-#include <string>
+#include <string.h>
 #include "buffer/frame.h"
 #include "page.h"
 
@@ -15,7 +15,9 @@ namespace sabm
         /* data */
         FILE *curFile;
         int numPages;
-        Page headPage;
+        Page *headPage;
+        int size_int;
+
     public:
         DSMgr(/* args */);
         ~DSMgr();
@@ -29,6 +31,9 @@ namespace sabm
         int GetNumPages();
         void SetUse(int index, int use_bit);
         int GetUse(int index);
+        //head pages ops
+        void SetValue(Page *p, int n);
+        int GetValue(char *c);
     };
 }
 #endif

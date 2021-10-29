@@ -14,32 +14,9 @@ namespace sabm
 
     struct Page
     {
-    private:
         /* data */
         char field[pageSize];
-    public:
-        Page(/* args */);
-        Page(FILE *f, int page_id);
-        ~Page();
-        int GetOffset();
     };
-
-    Page::Page(/* args */)
-    {
-    }
-
-    Page::Page(/* args */ FILE *f, int page_id)
-    {
-        fseek(f, page_id * pageSize, 0); //0表示从文件头，偏移量page_id * pageSize
-        fread(field, pageSize, 1, f);
-    }
-
-    Page::~Page()
-    {
-    }
-
-
-
 }
 
 #endif
