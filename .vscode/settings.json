@@ -3,6 +3,8 @@
         "new": "cpp",
         "string": "cpp",
         "cstdio": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "*.tcc": "cpp",
+        "stdexcept": "cpp"
     }
 }
