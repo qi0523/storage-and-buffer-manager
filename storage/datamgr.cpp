@@ -60,4 +60,21 @@ namespace sabm
         }
         return res;
     }
+
+    void DSMgr::IncNumPages()
+    {
+        ++numPages; //insert a page
+    }
+
+    int DSMgr::GetNumPages()
+    {
+        return numPages;
+    }
+
+    BufferFrame DSMgr::ReadPage(int page_id)
+    {
+        //先从首页查找
+        
+    }
+
 } // namespace sabm
