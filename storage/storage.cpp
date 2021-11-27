@@ -1,22 +1,20 @@
-#include "datafile.h"
+#include <storage/storage.h>
 
-namespace sabm
+namespace storage
 {
 
     DSMgr::DSMgr(/* args */)
     {
         std::string filename = "";
-        int statusCode = OpenFile(filename);
-        if (statusCode != 0)
+        if (OpenFile(filename) != 0)
         {
-            std::cout << "fail to open the file" << std::endl;
+            printf("fail to open the file.\n");
             exit(0);
         }
         size_int = sizeof(int);
         headPage = new Page();
-        if (feof(GetFile()))
+        if (feof(GetFile())) // true denotes file is empty.
         {
-            // true denotes file is empty.
             numPages = 0;
             SetValue(headPage->field, 0);
             fwrite(headPage->field, pageSize, 1, GetFile());
@@ -30,6 +28,7 @@ namespace sabm
 
     DSMgr::~DSMgr()
     {
+        CloseFile();
     }
 
     int DSMgr::OpenFile(std::string filename)
@@ -40,6 +39,16 @@ namespace sabm
             return -1;
         }
         return 0;
+    }
+
+    int DSMgr::CloseFile()
+    {
+        if (!fclose(GetFile()))
+        {
+            printf("file is closed successfully.\n");
+            return 0;
+        }
+        return -1;
     }
 
     void DSMgr::SetValue(char *c, int n)
@@ -98,55 +107,53 @@ namespace sabm
         return -1;
     }
 
-    void DSMgr::ReadPage(BufferFrame *&frm, int pagePos)
+    int DSMgr::FileRead(frame::BufferFrame *&frm, int pagePos)
     {
         if (frm == nullptr)
-            frm = new BufferFrame();
+            frm = new frame::BufferFrame();
         Seek(pagePos * pageSize);
-        fread(frm->field, pageSize, 1, GetFile());
+        return fread(frm->field, pageSize, 1, GetFile());
     }
 
-    BufferFrame *DSMgr::ReadPage(int page_id)
+    frame::BufferFrame *DSMgr::ReadPage(int page_id)
     {
         //先从headpage查找
-        BufferFrame *frm = nullptr;
+        frame::BufferFrame *frm = nullptr;
         int pagePos = ScanPage(headPage->field, page_id);
         if (pagePos > 0)
         {
-            ReadPage(frm, pagePos);
+            FileRead(frm, pagePos);
             return frm;
         }
         //headpage 未找到
         if (GetValue(headPage->field) < numEntries - 1)
             return frm; //文件没有page_id的页
         // 文件未完全扫描
-        int pagePos = numEntries;
+        pagePos = numEntries;
         while (1)
         {
-            ReadPage(frm, pagePos);
-            int n = GetValue(frm->field);
-            if (n == 0)
-                break;
+            if (FileRead(frm, pagePos) == 0)
+                break; //读取一个空目录页
             int pos = ScanPage(frm->field, page_id);
             if (pos > 0)
             {
-                ReadPage(frm, pagePos + pos);
+                FileRead(frm, pagePos + pos);
                 return frm;
             }
-            if (n < numEntries - 1)
+            if (GetValue(frm->field) < numEntries - 1)
                 break; //文件没有page_id的页
             pagePos += numEntries;
         }
         return nullptr;
     }
 
-    void DSMgr::WritePage(char *frm, int pagePos)
+    int DSMgr::FileWrite(char *frm, int pagePos)
     {
         Seek(pageSize * pagePos);
-        fwrite(frm, pageSize, 1, GetFile());
+        return fwrite(frm, pageSize, 1, GetFile());
     }
 
-    int DSMgr::WritePage(int page_id, BufferFrame *frame)
+    int DSMgr::WritePage(int page_id, frame::BufferFrame *frame)
     {
         ++numPages;
         int n = GetValue(headPage->field);
@@ -155,8 +162,30 @@ namespace sabm
             n++;
             SetValue(headPage->field, n);
             SetValue(headPage->field + n * size_int, page_id);
-            WritePage(frame->field, n);
-            WritePage(headPage->field, 0);
+            FileWrite(frame->field, n);
+            FileWrite(headPage->field, 0);
+        }
+        //读取下一个目录页
+        frame::BufferFrame *curDirPage = new frame::BufferFrame();
+        for (size_t i = 1;; i++)
+        {
+            // 页号为i * 1024
+            if (FileRead(curDirPage, i * numEntries) == 0)
+            {
+                SetValue(curDirPage->field, 1);
+                SetValue(curDirPage->field + size_int, page_id);
+                FileWrite(curDirPage->field, i * numEntries);
+                return FileWrite(frame->field, i * numEntries + 1);
+            }
+            int n = GetValue(curDirPage->field);
+            if (n < numEntries - 1) //找到不满页
+            {
+                n++;
+                SetValue(curDirPage->field, n);
+                SetValue(curDirPage->field + n * size_int, page_id);
+                FileWrite(curDirPage->field, i * numEntries);
+                return FileWrite(frame->field, i * numEntries + n);
+            }
         }
     }
 

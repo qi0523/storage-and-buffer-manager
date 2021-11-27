@@ -1,7 +1,4 @@
-#ifndef SABM_FRAME_H
-#define SABM_FRAME_H_
-
-namespace sabm{
+namespace frame{
 
     static const int frameSize = 4096;
 
@@ -10,5 +7,3 @@ namespace sabm{
         char field[frameSize];
     };
 }
-
-#endif

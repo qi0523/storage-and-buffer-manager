@@ -1,7 +1,48 @@
-#include "buffer.h"
+#include <buffer/buffer.h>
 
-namespace sabm
+namespace buffer
 {
+    BufferManager::BufferManager(/* args */)
+    {
+        this->curFreeFrame = 0;
+        this->IONums = 0;
+        head = new LRUNode;
+        tail = new LRUNode;
+        head->next = tail;
+        tail->pre = head;
+    }
+
+    BufferManager::~BufferManager()
+    {
+        while (this->head != nullptr)
+        {
+            /* code */
+            LRUNode *p = this->head;
+            while (this->head != nullptr)
+            {
+                this->head = this->head->next;
+                delete p;
+                p = this->head;
+            }
+        }
+        for (int i = 0; i < bufferSize; i++)
+        {
+            /* code */
+            BCB *curHead = this->hashTable[i];
+            if (curHead != nullptr)
+            {
+                BCB *p = curHead;
+                while (curHead != nullptr)
+                {
+                    /* code */
+                    curHead = curHead->next;
+                    delete p;
+                    p = curHead;
+                }
+            }
+        }
+    }
+
     int BufferManager::FixPage(int page_id, int prot)
     {
         // if page is in the buffer

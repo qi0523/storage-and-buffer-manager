@@ -1,13 +1,10 @@
-#ifndef SABM_DATA_FILE_H_
-#define SABM_DATA_FILE_H_
-
-#include <iostream>
 #include <stdio.h>
+#include <string>
 #include <string.h>
-#include "../buffer/frame.h"
+#include <frame/frame.h>
 #include "page.h"
 
-namespace sabm
+namespace storage 
 {
     class DSMgr
     {
@@ -25,10 +22,10 @@ namespace sabm
         int OpenFile(std::string filename);
         int CloseFile();
         int ScanPage(char *s, int page_id);
-        BufferFrame *ReadPage(int page_id);
-        void ReadPage(BufferFrame *&frm, int pagePos);
-        void WritePage(char *frm, int pagePos);
-        int WritePage(int page_id, BufferFrame *frame);
+        frame::BufferFrame *ReadPage(int page_id);
+        int FileRead(frame::BufferFrame *&frm, int pagePos);
+        int FileWrite(char *frm, int pagePos);
+        int WritePage(int page_id, frame::BufferFrame *frame);
         int Seek(int offset);
         FILE *GetFile();
         void IncNumPages();
@@ -40,4 +37,3 @@ namespace sabm
         int GetValue(char *c);
     };
 }
-#endif

@@ -1,9 +1,14 @@
 #include <iostream>
-#include "./buffer/buffer.h"
+#include <stdio.h>
+#include <buffer/buffer.h>
 
 int main()
 {
-    sabm::BufferManager *bm = new sabm::BufferManager();
-    std::cout << bm->isFull() << std::endl;
+    buffer::BufferManager bm;
+    if(bm.isFull()){
+        printf("111");
+    }else{
+        printf("222");
+    }
     return 0;
 }

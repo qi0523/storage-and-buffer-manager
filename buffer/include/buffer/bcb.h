@@ -1,12 +1,8 @@
-#ifndef SABM_BCB_H
-#define SABM_BCB_H
-
-namespace sabm 
+namespace buffer 
 {
     struct BCB
     {
         /* data */
-        BCB();
         int page_id;
         int frame_id;
         int latch;
@@ -15,5 +11,3 @@ namespace sabm
         BCB *next;
     };
 }
-
-#endif
