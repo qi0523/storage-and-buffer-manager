@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
-#include "buffer/frame.h"
+#include "../buffer/frame.h"
 #include "page.h"
 
 namespace sabm

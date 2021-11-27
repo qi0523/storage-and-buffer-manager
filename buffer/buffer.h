@@ -2,8 +2,8 @@
 #define SABM_BUFFER_H_
 
 #include <map>
-#include "buffer/frame.h"
-#include "buffer/bcb.h"
+#include "frame.h"
+#include "bcb.h"
 
 namespace sabm
 {

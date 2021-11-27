@@ -1,8 +1,6 @@
 #ifndef SABM_PAGE_H
 #define SABM_PAGE_H_
 
-#include <stdio.h>
-
 namespace sabm
 {
 
