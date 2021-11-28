@@ -6,5 +6,6 @@ namespace buffer
         int page_id;
         struct LRUNode *pre;
         struct LRUNode *next;
+        LRUNode():pre(nullptr),next(nullptr){}
     };
 }

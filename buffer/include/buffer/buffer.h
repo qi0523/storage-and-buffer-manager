@@ -15,7 +15,7 @@ namespace buffer
         static const int bufferSize = 1024; // buffer size
         static frame::BufferFrame buffer[bufferSize]; //buffer arrays
         int frameToPage[bufferSize];    // index from frame_id to page_id
-        BCB *hashTable[bufferSize];     //page_id index to frame_id
+        BCB **hashTable;     //page_id index to frame_id
         LRUNode *head;
         LRUNode *tail;
         std::map<int, LRUNode *> address;

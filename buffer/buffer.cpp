@@ -10,20 +10,23 @@ namespace buffer
         tail = new LRUNode;
         head->next = tail;
         tail->pre = head;
+        hashTable = new BCB* [bufferSize];
     }
 
     BufferManager::~BufferManager()
     {
-        while (this->head != nullptr)
+        if (head != nullptr)
         {
             /* code */
-            LRUNode *p = this->head;
-            while (this->head != nullptr)
+            LRUNode *p = head;
+            while (head->next != tail)
             {
-                this->head = this->head->next;
+                head = head->next;
                 delete p;
-                p = this->head;
+                p = head;
             }
+            delete head;
+            delete tail;
         }
         for (int i = 0; i < bufferSize; i++)
         {
@@ -41,6 +44,7 @@ namespace buffer
                 }
             }
         }
+        delete hashTable;
     }
 
     int BufferManager::FixPage(int page_id, int prot)
