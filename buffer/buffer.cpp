@@ -6,11 +6,19 @@ namespace buffer
     {
         this->curFreeFrame = 0;
         this->IONums = 0;
+        this->hit = 0;
         head = new LRUNode;
         tail = new LRUNode;
         head->next = tail;
         tail->pre = head;
-        hashTable = new BCB* [bufferSize];
+        hashTable = new BCB *[bufferSize];
+        for (size_t i = 0; i < bufferSize; i++)
+        {
+            /* code */
+            hashTable[i] = new BCB();
+        }
+
+        storgeMgr = new storage::DSMgr();
     }
 
     BufferManager::~BufferManager()
@@ -49,19 +57,47 @@ namespace buffer
 
     int BufferManager::FixPage(int page_id, int prot)
     {
-        // if page is in the buffer
-        int pos = Hash(page_id);
+        //prot = 0：read，prot = 1：write
+        // page is in the buffer？
         BCB *bcb = GetBCB(page_id);
         if (bcb != nullptr)
+        {
+            //缓冲区存在
+            hit++;
+            if (prot == 0)
+            {
+                //read
+                bcb->count++;
+                bcb->count--;
+            }
+            else
+            {
+                bcb->count++;
+                bcb->dirty = 1;
+                bcb->count--;
+            }
             return bcb->frame_id;
+        }
         //page is not in the buffer
-        int frame_id;
+        int frame_id = curFreeFrame;
         if (isFull())
         {
             frame_id = SelectVictim();
         }
-        frame_id = curFreeFrame;
-        // load file page.............
+        //设置bcb
+        SetBCB(page_id, frame_id);
+        //set lru node
+        SetLRUEle(page_id);
+        if (prot == 0)
+        {
+            // load file page.............
+            ReadPages();
+        }
+        else
+        {
+            
+        }
+
         return frame_id;
     }
 
@@ -73,19 +109,6 @@ namespace buffer
     int BufferManager::Hash(int page_id)
     {
         return page_id % bufferSize;
-    }
-
-    BCB *BufferManager::GetBCB(int page_id)
-    {
-        int pos = Hash(page_id);
-        BCB *bcb = hashTable[pos];
-        while (bcb != nullptr)
-        {
-            if (bcb->page_id == page_id)
-                return bcb;
-            bcb = bcb->next;
-        }
-        return bcb;
     }
 
     int BufferManager::SelectVictim()
@@ -123,6 +146,29 @@ namespace buffer
         }
     }
 
+    BCB *BufferManager::GetBCB(int page_id)
+    {
+        int pos = Hash(page_id);
+        BCB *bcb = hashTable[pos];
+        while (bcb != nullptr)
+        {
+            if (bcb->page_id == page_id)
+                return bcb;
+            bcb = bcb->next;
+        }
+        return bcb;
+    }
+
+    void BufferManager::SetBCB(int page_id, int frame_id)
+    {
+        int pos = Hash(page_id);
+        BCB *bcb = new BCB();
+        bcb->page_id = page_id;
+        bcb->frame_id = frame_id;
+        bcb->next = hashTable[pos]->next;
+        hashTable[pos]->next = bcb;
+    }
+
     void BufferManager::RemoveBCB(BCB *bcb, int page_id)
     {
         int pos = Hash(page_id);
@@ -142,8 +188,20 @@ namespace buffer
         return;
     }
 
+    void BufferManager::SetLRUEle(int page_id)
+    {
+        LRUNode *ele = new LRUNode();
+        ele->page_id = page_id;
+        address[page_id] = ele;
+        head->next->pre = ele;
+        ele->next = head->next;
+        ele->pre = head;
+        head->next = ele;
+    }
+
     void BufferManager::RemoveLRUEle(LRUNode *ptr)
     {
+        address.erase(ptr->page_id);
         ptr->pre->next = ptr->next;
         ptr->next->pre = ptr->pre;
         delete ptr;

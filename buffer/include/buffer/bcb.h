@@ -9,6 +9,6 @@ namespace buffer
         int count;
         int dirty;
         BCB *next;
-        BCB():next(nullptr){}
+        BCB():count(0), dirty(0), next(nullptr){}
     };
 }

@@ -1,7 +1,7 @@
 #include <map>
 #include "bcb.h"
 #include "lru.h"
-#include <frame/frame.h>
+#include "../../../storage/include/storage/storage.h"
 
 namespace buffer
 {
@@ -12,6 +12,7 @@ namespace buffer
         /* data */
         int curFreeFrame;               //current allign free frame
         int IONums;                     //IO numbers
+        int hit;
         static const int bufferSize = 1024; // buffer size
         static frame::BufferFrame buffer[bufferSize]; //buffer arrays
         int frameToPage[bufferSize];    // index from frame_id to page_id
@@ -19,7 +20,7 @@ namespace buffer
         LRUNode *head;
         LRUNode *tail;
         std::map<int, LRUNode *> address;
-
+        storage::DSMgr * storgeMgr;
     public:
         BufferManager(/* args */);
         ~BufferManager();
@@ -28,7 +29,8 @@ namespace buffer
         void FixNewPage();
         int UnfixPage(int page_id);
         int NumFreeFrames();
-
+        void SetBCB(int page_id, int frame_id);
+        void SetLRUEle(int page_id);
         //Internal functions
         bool isFull();
         int SelectVictim();
