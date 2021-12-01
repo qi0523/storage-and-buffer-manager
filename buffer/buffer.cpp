@@ -47,6 +47,8 @@ namespace buffer
                 {
                     /* code */
                     curHead = curHead->next;
+                    if (p->dirty == 1)                          //如果是脏页，在系统退出前写回磁盘
+                        WriteDirtys(p->page_id, p->frame_id);
                     delete p;
                     p = curHead;
                 }
@@ -84,20 +86,22 @@ namespace buffer
         {
             frame_id = SelectVictim();
         }
+        frameToPage[frame_id] = page_id; //设置frame到page的映射
         //设置bcb
-        SetBCB(page_id, frame_id);
+        SetBCB(page_id, frame_id, prot);
         //set lru node
         SetLRUEle(page_id);
         if (prot == 0)
         {
             // load file page.............
-            ReadPages();
+            ReadPages(page_id, frame_id);
         }
         else
         {
-            
+            strcpy(buffer[frame_id].field, "page");
+            IONums++;
+            storgeMgr->WritePage(page_id, &buffer[frame_id]);
         }
-
         return frame_id;
     }
 
@@ -137,9 +141,9 @@ namespace buffer
             if (bcb->count == 0 && bcb->dirty == 1)
             {
                 // unused and dirty
+                WriteDirtys(bcb->page_id, bcb->frame_id);
                 RemoveBCB(bcb, page_id);
                 RemoveLRUEle(ptr);
-                WriteDirtys();
                 return bcb->frame_id;
             }
             ptr = ptr->pre;
@@ -159,10 +163,12 @@ namespace buffer
         return bcb;
     }
 
-    void BufferManager::SetBCB(int page_id, int frame_id)
+    void BufferManager::SetBCB(int page_id, int frame_id, int prot)
     {
         int pos = Hash(page_id);
         BCB *bcb = new BCB();
+        if (prot == 1)
+            bcb->dirty = 1;
         bcb->page_id = page_id;
         bcb->frame_id = frame_id;
         bcb->next = hashTable[pos]->next;
@@ -185,7 +191,6 @@ namespace buffer
         }
         ptr->next = bcb->next;
         delete bcb;
-        return;
     }
 
     void BufferManager::SetLRUEle(int page_id)
@@ -207,14 +212,29 @@ namespace buffer
         delete ptr;
     }
 
-    void BufferManager::ReadPages()
+    void BufferManager::ReadPages(int page_id, int frame_id)
     {
         //read
         ++IONums;
+        frame::BufferFrame *frm = storgeMgr->ReadPage(page_id, &buffer[frame_id]);
+        if (frm == nullptr)
+        {
+            FixNewPage(page_id, frame_id);
+            return;
+        }
     }
-    void BufferManager::WriteDirtys()
+
+    void BufferManager::FixNewPage(int page_id, int frame_id)
+    {
+        strcpy(buffer[frame_id].field, "fix new page");
+        IONums++;
+        storgeMgr->WritePage(page_id, &buffer[frame_id]);
+    }
+
+    void BufferManager::WriteDirtys(int page_id, int frame_id)
     {
         //write
         ++IONums;
+        storgeMgr->WritePage(page_id, &buffer[frame_id]);
     }
 } // namespace sabm

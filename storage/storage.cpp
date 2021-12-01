@@ -115,10 +115,9 @@ namespace storage
         return fread(frm->field, pageSize, 1, GetFile());
     }
 
-    frame::BufferFrame *DSMgr::ReadPage(int page_id)
+    frame::BufferFrame *DSMgr::ReadPage(int page_id, frame::BufferFrame *frm)
     {
         //先从headpage查找
-        frame::BufferFrame *frm = nullptr;
         int pagePos = ScanPage(headPage->field, page_id);
         if (pagePos > 0)
         {
@@ -127,7 +126,7 @@ namespace storage
         }
         //headpage 未找到
         if (GetValue(headPage->field) < numEntries - 1)
-            return frm; //文件没有page_id的页
+            return nullptr; //文件没有page_id的页
         // 文件未完全扫描
         pagePos = numEntries;
         while (1)

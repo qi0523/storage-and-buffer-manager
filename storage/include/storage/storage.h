@@ -22,7 +22,7 @@ namespace storage
         int OpenFile(std::string filename);
         int CloseFile();
         int ScanPage(char *s, int page_id);
-        frame::BufferFrame *ReadPage(int page_id);
+        frame::BufferFrame *ReadPage(int page_id, frame::BufferFrame *frm);
         int FileRead(frame::BufferFrame *&frm, int pagePos);
         int FileWrite(char *frm, int pagePos);
         int WritePage(int page_id, frame::BufferFrame *frame);

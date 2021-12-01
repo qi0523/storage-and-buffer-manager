@@ -26,10 +26,10 @@ namespace buffer
         ~BufferManager();
         //buffer manager functions
         int FixPage(int page_id, int prot);
-        void FixNewPage();
+        void FixNewPage(int page_id, int frame_id);
         int UnfixPage(int page_id);
         int NumFreeFrames();
-        void SetBCB(int page_id, int frame_id);
+        void SetBCB(int page_id, int frame_id, int prot);
         void SetLRUEle(int page_id);
         //Internal functions
         bool isFull();
@@ -40,8 +40,8 @@ namespace buffer
         void RemoveLRUEle(LRUNode *ptr);
         void SetDirty(int frame_id);
         void UnsetDirty(int frame_id);
-        void ReadPages();
-        void WriteDirtys();
+        void ReadPages(int page_id, int frame_id);
+        void WriteDirtys(int page_id, int frame_id);
         void PrintFrame(int frame_id);
     };
 
