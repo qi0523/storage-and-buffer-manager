@@ -1,5 +1,7 @@
+#pragma once
+
 #include <stdio.h>
-#include <string>
+#include <stdlib.h>
 #include <string.h>
 #include "frame.h"
 #include "page.h"
@@ -19,9 +21,10 @@ namespace storage
     public:
         DSMgr(/* args */);
         ~DSMgr();
-        int OpenFile(std::string filename);
+        int OpenFile(char *filename);
         int CloseFile();
         int ScanPage(char *s, int page_id);
+        int WriteScan(int page_id, int &pos);
         frame::BufferFrame *ReadPage(int page_id, frame::BufferFrame *frm);
         int FileRead(frame::BufferFrame *&frm, int pagePos);
         int FileWrite(char *frm, int pagePos);
@@ -33,7 +36,7 @@ namespace storage
         void SetUse(int index, int use_bit);
         int GetUse(int index);
         //head pages ops
-        void SetValue(char *c, int n);
-        int GetValue(char *c);
+        void SetValue(char c[], int n);
+        int GetValue(char c[]);
     };
 }

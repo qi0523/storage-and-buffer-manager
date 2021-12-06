@@ -7,6 +7,7 @@ namespace buffer
         this->curFreeFrame = 0;
         this->IONums = 0;
         this->hit = 0;
+        this->dirtyNums = 0;
         head = new LRUNode;
         tail = new LRUNode;
         head->next = tail;
@@ -47,7 +48,7 @@ namespace buffer
                 {
                     /* code */
                     curHead = curHead->next;
-                    if (p->dirty == 1)                          //如果是脏页，在系统退出前写回磁盘
+                    if (p->dirty == 1) //如果是脏页，在系统退出前写回磁盘
                         WriteDirtys(p->page_id, p->frame_id);
                     delete p;
                     p = curHead;
@@ -55,20 +56,22 @@ namespace buffer
             }
         }
         delete hashTable;
+        delete storgeMgr;
     }
 
     int BufferManager::FixPage(int page_id, int prot)
     {
-        //prot = 0：read，prot = 1：write
-        // page is in the buffer？
+        // prot = 0：read，prot = 1：write
+        //  page is in the buffer？
         BCB *bcb = GetBCB(page_id);
         if (bcb != nullptr)
         {
             //缓冲区存在
             hit++;
+            printf("%d,%d in buffer\n", prot, page_id);
             if (prot == 0)
             {
-                //read
+                // read
                 bcb->count++;
                 bcb->count--;
             }
@@ -78,28 +81,33 @@ namespace buffer
                 bcb->dirty = 1;
                 bcb->count--;
             }
+            LRU(bcb);
             return bcb->frame_id;
         }
-        //page is not in the buffer
-        int frame_id = curFreeFrame;
-        if (isFull())
-        {
+        printf("%d,%d not in buffer\n", prot, page_id);
+        // page is not in the buffer
+        int frame_id;
+        if (!isFull())
+            frame_id = (curFreeFrame++);
+        else
             frame_id = SelectVictim();
-        }
+        printf("SelectVictim frame_id: %d\n", frame_id);
         frameToPage[frame_id] = page_id; //设置frame到page的映射
         //设置bcb
         SetBCB(page_id, frame_id, prot);
-        //set lru node
+        // set lru node
         SetLRUEle(page_id);
         if (prot == 0)
         {
             // load file page.............
+            printf("%d read\n", page_id);
             ReadPages(page_id, frame_id);
         }
         else
         {
             strcpy(buffer[frame_id].field, "page");
             IONums++;
+            printf("%d write\n", page_id);
             storgeMgr->WritePage(page_id, &buffer[frame_id]);
         }
         return frame_id;
@@ -117,6 +125,7 @@ namespace buffer
 
     int BufferManager::SelectVictim()
     {
+        printf("SelectVictim\n");
         LRUNode *ptr = tail->pre;
         while (ptr != head)
         {
@@ -192,6 +201,16 @@ namespace buffer
         ptr->next = bcb->next;
         delete bcb;
     }
+    
+    void BufferManager::LRU(BCB *b){
+        LRUNode *node = address[b->page_id];
+        node->pre->next = node->next;
+        node->next->pre = node->pre;
+        head->next->pre = node;
+        node->next = head->next;
+        node->pre = head;
+        head->next = node;
+    }
 
     void BufferManager::SetLRUEle(int page_id)
     {
@@ -214,11 +233,13 @@ namespace buffer
 
     void BufferManager::ReadPages(int page_id, int frame_id)
     {
-        //read
+        // read
         ++IONums;
+        printf("%d ReadPages(int page_id, int frame_id)\n", page_id);
         frame::BufferFrame *frm = storgeMgr->ReadPage(page_id, &buffer[frame_id]);
         if (frm == nullptr)
         {
+            printf("%d not in data file\n", page_id);
             FixNewPage(page_id, frame_id);
             return;
         }
@@ -228,13 +249,22 @@ namespace buffer
     {
         strcpy(buffer[frame_id].field, "fix new page");
         IONums++;
+        printf("%d fix new page\n", page_id);
         storgeMgr->WritePage(page_id, &buffer[frame_id]);
     }
 
     void BufferManager::WriteDirtys(int page_id, int frame_id)
     {
-        //write
+        // write
         ++IONums;
+        ++dirtyNums;
+        printf("WriteDirtys:      %d\n", page_id);
         storgeMgr->WritePage(page_id, &buffer[frame_id]);
+    }
+
+    void BufferManager::PrintInfo(){
+        printf("IO times: %d\n", IONums);
+        printf("hit times: %d\n", hit);
+        printf("dirty write times: %d\n", dirtyNums);
     }
 } // namespace sabm
