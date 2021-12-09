@@ -14,7 +14,7 @@ namespace storage
         /* data */
         FILE *curFile;
         int numPages;
-        Page *headPage;
+        HeadPage *headPage;
         int size_int;
         int numEntries;
 
@@ -23,10 +23,9 @@ namespace storage
         ~DSMgr();
         int OpenFile(char *filename);
         int CloseFile();
-        int ScanPage(char *s, int page_id);
-        int WriteScan(int page_id, int &pos);
-        frame::BufferFrame *ReadPage(int page_id, frame::BufferFrame *frm);
+        int Scan(int page_id, int &pos);
         int FileRead(frame::BufferFrame *&frm, int pagePos);
+        frame::BufferFrame *ReadPage(int page_id, frame::BufferFrame *frm);
         int FileWrite(char *frm, int pagePos);
         int WritePage(int page_id, frame::BufferFrame *frame);
         int Seek(int offset);

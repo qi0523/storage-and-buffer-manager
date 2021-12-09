@@ -57,6 +57,7 @@ namespace buffer
         }
         delete hashTable;
         delete storgeMgr;
+        PrintInfo();
     }
 
     int BufferManager::FixPage(int page_id, int prot)
@@ -240,7 +241,7 @@ namespace buffer
         if (frm == nullptr)
         {
             printf("%d not in data file\n", page_id);
-            FixNewPage(page_id, frame_id);
+            FixNewPage(storgeMgr->GetValue(buffer[frame_id].field), frame_id);
             return;
         }
     }
@@ -249,8 +250,7 @@ namespace buffer
     {
         strcpy(buffer[frame_id].field, "fix new page");
         IONums++;
-        printf("%d fix new page\n", page_id);
-        storgeMgr->WritePage(page_id, &buffer[frame_id]);
+        storgeMgr->FileWrite(buffer[frame_id].field, page_id);
     }
 
     void BufferManager::WriteDirtys(int page_id, int frame_id)

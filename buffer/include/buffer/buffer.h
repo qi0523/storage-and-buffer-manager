@@ -26,7 +26,7 @@ namespace buffer
         ~BufferManager();
         //buffer manager functions
         int FixPage(int page_id, int prot);
-        void FixNewPage(int page_id, int frame_id);
+        void FixNewPage(int page_id, int frame_id); //page_id:  pos
         int UnfixPage(int page_id);
         int NumFreeFrames();
         

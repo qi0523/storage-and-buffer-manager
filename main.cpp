@@ -17,7 +17,6 @@ int main()
         bm->FixPage(page_id, rw);
         fscanf(f, "%d,%d", &rw, &page_id);
     }
-    bm->PrintInfo();
     delete bm;
     return 0;
 }

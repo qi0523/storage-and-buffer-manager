@@ -10,4 +10,12 @@ namespace storage
         /* data */
         char field[pageSize];
     };
+
+    struct HeadPage
+    {
+        /* data */
+        Page p;
+        struct HeadPage * next;
+        HeadPage():next(nullptr){}
+    };
 }
